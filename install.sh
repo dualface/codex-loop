@@ -4,11 +4,13 @@ set -euo pipefail
 
 ACTION="${1:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL_NAME="continue-unless-blocked"
+SKILL_NAME="keep-going"
+LEGACY_SKILL_NAME="continue-unless-blocked"
 SOURCE_DIR="${SCRIPT_DIR}/skills/${SKILL_NAME}"
 CODEX_ROOT="${CODEX_HOME:-$HOME/.codex}"
 TARGET_ROOT="${CODEX_ROOT}/skills"
 TARGET_DIR="${TARGET_ROOT}/${SKILL_NAME}"
+LEGACY_TARGET_DIR="${TARGET_ROOT}/${LEGACY_SKILL_NAME}"
 
 usage() {
   cat <<'EOF'
@@ -31,6 +33,15 @@ require_source() {
   [[ -d "${SOURCE_DIR}" ]] || fail "skill source not found: ${SOURCE_DIR}"
   [[ -f "${SOURCE_DIR}/SKILL.md" ]] || fail "missing source SKILL.md"
   [[ -f "${SOURCE_DIR}/agents/openai.yaml" ]] || fail "missing source agents/openai.yaml"
+}
+
+remove_legacy_install() {
+  [[ "${LEGACY_TARGET_DIR}" != "${TARGET_DIR}" ]] || return 0
+  [[ -e "${LEGACY_TARGET_DIR}" ]] || return 0
+  [[ -d "${LEGACY_TARGET_DIR}" ]] || fail "legacy target exists and is not a directory: ${LEGACY_TARGET_DIR}"
+
+  rm -rf "${LEGACY_TARGET_DIR}"
+  printf 'Removed legacy skill from %s\n' "${LEGACY_TARGET_DIR}"
 }
 
 install_or_update() {
@@ -71,21 +82,26 @@ install_or_update() {
     rm -rf "${backup_dir}"
   fi
 
+  remove_legacy_install
   printf 'Installed %s to %s\n' "${SKILL_NAME}" "${TARGET_DIR}"
 }
 
 uninstall_skill() {
-  if [[ ! -e "${TARGET_DIR}" ]]; then
+  local removed=0
+  local path
+
+  for path in "${TARGET_DIR}" "${LEGACY_TARGET_DIR}"; do
+    [[ -e "${path}" ]] || continue
+    [[ -d "${path}" ]] || fail "target exists and is not a directory: ${path}"
+
+    rm -rf "${path}"
+    printf 'Removed skill from %s\n' "${path}"
+    removed=1
+  done
+
+  if [[ "${removed}" -eq 0 ]]; then
     printf 'No installed skill at %s\n' "${TARGET_DIR}"
-    return 0
   fi
-
-  if [[ ! -d "${TARGET_DIR}" ]]; then
-    fail "target exists and is not a directory: ${TARGET_DIR}"
-  fi
-
-  rm -rf "${TARGET_DIR}"
-  printf 'Removed %s from %s\n' "${SKILL_NAME}" "${TARGET_DIR}"
 }
 
 case "${ACTION}" in

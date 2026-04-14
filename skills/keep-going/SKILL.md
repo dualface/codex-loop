@@ -1,9 +1,9 @@
 ---
-name: "continue-unless-blocked"
+name: "keep-going"
 description: "Bias toward autonomous execution on long-running or multi-step tasks. Use when the user asks Codex to keep going, run until done, avoid repeated confirmation prompts, work autonomously, continue unless blocked, or handle a long task end-to-end. Apply this skill to coding, debugging, research, refactors, migrations, investigations, and other extended workflows where progress updates are useful but permission checkpoints are not desired."
 ---
 
-# Continue Unless Blocked
+# Keep Going
 
 Treat the current request as authorization to carry the task through to a meaningful completion. Prefer progress updates over permission requests. Do not ask "should I continue?" unless a real blocker exists.
 
