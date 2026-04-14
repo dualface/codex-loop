@@ -1,0 +1,7 @@
+interface:
+  display_name: "Continue Unless Blocked"
+  short_description: "Keep Codex moving on long tasks until truly blocked"
+  default_prompt: "Use $continue-unless-blocked and keep executing until the task is done or a real blocker appears."
+
+policy:
+  allow_implicit_invocation: true
